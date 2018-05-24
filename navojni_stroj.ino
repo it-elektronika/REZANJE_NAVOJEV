@@ -27,9 +27,14 @@
 int state;
 int count;
 
-int timer;
+int t1;
 int st1;
-int en1;
+int et1;
+
+int t2;
+int st2;
+int et2;
+
 
 int state1;
 int state2;
@@ -87,9 +92,12 @@ void setup()
   pinMode(omejilec_hoda_umaknjen, INPUT);
   count = EEPROM.read(0);
   count = 0;
-  state = 9;  
+  state = 12;  
   debounceDelay = 20;
-  delay(5000);
+
+  t1 = 150;
+  t2 = 300;
+  delay(100);
 }
 
 void loop() 
@@ -153,14 +161,14 @@ void loop()
   }
   
  
-  if((millis() - lastDebounceTime2) > debounceDelay && state != 10 && state != 11 && state != 12 && state != 0) // napaka 
+  if((millis() - lastDebounceTime2) > debounceDelay && state != 12 && state != 13 && state != 14 && state != 0) // napaka 
   {
     if(reading2 != state2)
     {
       state2 = reading2;
       if(state2 == LOW)
       {
-        state = 9;
+        state = 12;
       }
     }
   }
@@ -175,7 +183,7 @@ void loop()
         if(state1 == HIGH)
         {
           digitalWrite(motor_navijanje, HIGH); // vklop motorja
-          digitalWrite(motor_mazanje, HIGH);  // vklop motorja za mazanje
+            // vklop motorja za mazanje
           count++;
           EEPROM.update(0, count);
           state = 1;
@@ -215,14 +223,26 @@ void loop()
         if(state10 == HIGH)
         {   
           digitalWrite(podajalni_cilinder_nazaj, LOW);
-          digitalWrite(podajalni_cilinder_naprej, HIGH);  // pomik cilindra naprej
+          digitalWrite(podajalni_cilinder_naprej, HIGH);
+          // pomik cilindra naprej
+          st2 = millis();
+          
           state = 4;
         }
       }
     }
   }
+  if(state == 4)
+  {
+    et2 = millis();
+    if((et2 - st2) > t2)
+    {
+      digitalWrite(motor_mazanje, LOW);
+      state = 5;  
+    }
+  }
   
-  else if(state == 4)
+  else if(state == 5)
   {
     if((millis() - lastDebounceTime3) > debounceDelay)
     {
@@ -233,12 +253,14 @@ void loop()
         {  
           digitalWrite(podajalni_cilinder_naprej, LOW);  //izklop cilindra naprej
           digitalWrite(podajalni_cilinder_nazaj, LOW);
-          state = 5;
+          state = 6;
         }
       }
     }
   }
-  else if(state == 5)
+
+  
+  else if(state == 6)
   {
     if((millis() - lastDebounceTime6) > debounceDelay)
     {
@@ -250,17 +272,29 @@ void loop()
           digitalWrite(motor_navijanje, LOW);        // obracanje smeri motorja
           digitalWrite(motor_odvijanje, HIGH);
           digitalWrite(frekvencnik_izhod, HIGH);
+          digitalWrite(podajalni_cilinder_naprej, LOW);
           digitalWrite(podajalni_cilinder_nazaj, HIGH);
-          delay(300);
-          digitalWrite(podajalni_cilinder_naprej, LOW);
-          digitalWrite(podajalni_cilinder_nazaj, LOW);
-          digitalWrite(podajalni_cilinder_naprej, LOW);
-          state = 6;
+          
+          st1 = millis();
+          state = 7;   
         }
       }
     }
   }
-  else if(state == 6)
+
+  if(state == 7)
+  {
+    et1 = millis();
+    if((et1 - st1) > t1)
+    {
+      digitalWrite(podajalni_cilinder_naprej, LOW);
+      digitalWrite(podajalni_cilinder_nazaj, LOW);
+      state = 8;    
+     }
+  }
+
+  
+  else if(state == 8)
   {
     if((millis() - lastDebounceTime4) > debounceDelay)
     {
@@ -271,12 +305,12 @@ void loop()
         {
           digitalWrite(podajalni_cilinder_nazaj, HIGH);  // pomik cilindra nazaj
           digitalWrite(podajalni_cilinder_naprej, LOW);
-          state = 7;
+          state = 9;
         }
       }
     }
   }
-  else if(state == 7)
+  else if(state == 9)
   {
     if((millis() - lastDebounceTime5) > debounceDelay)
     {
@@ -289,23 +323,38 @@ void loop()
           digitalWrite(podajalni_cilinder_naprej, LOW);
           digitalWrite(omejilec_hoda, HIGH);  // izklop motorja && omejevanje hoda 
           digitalWrite(motor_odvijanje, LOW);
-          digitalWrite(motor_mazanje, LOW);  
+          digitalWrite(motor_mazanje, HIGH);  
           digitalWrite(frekvencnik_izhod, LOW);
           digitalWrite(gripper, LOW);
-          state = 8;
+          state = 10;
         }
       }
     }
   }
   
-  else if(state == 8)
+  else if(state == 10)
   {
-    if((millis() - lastDebounceTime8) > debounceDelay)
+    if((millis() - lastDebounceTime7) > debounceDelay)
     {
-      if(reading8 != state8)
+      if(reading7 != state7)
       {
         state7 = reading7;
-        if(state8 == HIGH)
+        if(state7 == HIGH)
+        {  
+          state = 11;   
+        }
+      }
+    }
+  }
+
+  else if(state == 11)
+  {
+    if((millis() - lastDebounceTime9) > debounceDelay)
+    {
+      if(reading9 != state9)
+      {
+        state9 = reading9;
+        if(state9 == HIGH)
         {  
           state = 0;   // izhodiscno stanje
         }
@@ -314,12 +363,12 @@ void loop()
   }
    
   
-  else if(state == 9)
+  else if(state == 12)
   {
     digitalWrite(motor_odvijanje, LOW);  //izklop vseh funkcij
     digitalWrite(motor_navijanje, LOW);
     digitalWrite(frekvencnik_izhod, LOW);
-    digitalWrite(motor_mazanje, LOW);
+    digitalWrite(motor_mazanje, HIGH);
     digitalWrite(gripper, LOW);
     digitalWrite(omejilec_hoda, LOW);
     digitalWrite(podajalni_cilinder_naprej, LOW);
@@ -333,13 +382,13 @@ void loop()
         {
           digitalWrite(podajalni_cilinder_nazaj, LOW);
           digitalWrite(podajalni_cilinder_naprej, LOW);
-          state = 10;
+          state = 13;
         }
       }  
     }
   }
   
-  else if(state == 10)
+  else if(state == 13)
   {
     if((millis() - lastDebounceTime2) > debounceDelay)
     {
@@ -349,19 +398,19 @@ void loop()
         if(state2 == LOW)
         {
           digitalWrite(omejilec_hoda, HIGH);
-          state = 11;
+          state = 14;
         }
       }
     }  
   }
-  else if(state==11)
+  else if(state==14)
   {
-    if((millis() - lastDebounceTime2) > debounceDelay)
+    if((millis() - lastDebounceTime9) > debounceDelay)
     {
-      if(reading2 != state2)
+      if(reading9 != state9)
       {  
-        state2 = reading2;
-        if(state2 == HIGH)
+        state9 = reading9;
+        if(state9 == HIGH)
         {
           state = 0;
         }
@@ -379,4 +428,5 @@ void loop()
   lastState8 = reading8;
   lastState9 = reading9;
   lastState10 = reading10;
+  
 }
