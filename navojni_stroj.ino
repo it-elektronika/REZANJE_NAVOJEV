@@ -93,7 +93,7 @@ void setup()
   count = EEPROM.read(0);
   count = 0;
   state = 12;  
-  debounceDelay = 20;
+  debounceDelay = 25;
 
   t1 = 150;
   t2 = 300;
@@ -341,13 +341,13 @@ void loop()
         state7 = reading7;
         if(state7 == HIGH)
         {  
-          state = 11;   
+          state = 0;   
         }
       }
     }
   }
 
-  else if(state == 11)
+  else if(state == 11)  // removed due to conflicting timing issue // possible solution by removing  if after second if only checking if state is high //
   {
     if((millis() - lastDebounceTime9) > debounceDelay)
     {
